@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lens-serve"
+version = "0.0.1"
+description = "The Lens — serve: query the verified library via API + MCP."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Liz Osborn" }]
+keywords = ["the-lens", "systems-observatory", "knowledge-mapping", "nearly-decomposable"]
+# Stdlib-only at runtime by design, so `lens-serve --help` works the moment pip install completes.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+lens-serve = "lens_serve.launch:main"
+
+[project.urls]
+Homepage = "https://github.com/Lizo-RoadTown/lens-serve"
+Repository = "https://github.com/Lizo-RoadTown/lens-serve"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lens_serve"]

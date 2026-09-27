@@ -1,33 +1,66 @@
-# lens-serve — build-out plan (self-directed)
+# lens-serve — directions for building yourself out
 
-This is lens-serve's own plan for working itself out. Work top-down; check items off
-and append what you learned. Precedent to consult (not to copy as identity): the decomposition method +
-PROVES run log in the lens-core repo (github.com/Lizo-RoadTown/lens-core —
-`docs/decomposition/proves/process-log.md` and `skills/decomposition/SKILL.md`),
-the PROVES source itself (read-only), and the PROVES spine
-`staging_extractions → validation_decisions → core_entities`.
+This is not a spec. It orients you: how decomposition works, which piece you are,
+where the source is, and the constraints that hold. You derive what to build by
+working the source.
 
-## What lens-serve must become
+## 1. You figure out what to build — from the source
 
-- [ ] **1. A read layer over `verified`.** Read-only access to the verified library —
-  never touch the pipeline tables.
-- [ ] **2. A query API.** Serve queries over `verified` to callers.
-- [ ] **3. An MCP server.** Expose read tools (search / get / list) so agents can
-  query the verified library the same way people do.
-- [ ] **4. The `serve` CLI.** Stands up the API + MCP interface.
-- [ ] **5. Tests.** Read layer (mocked/temp DB), query API, MCP tool contracts.
-  Mirror the stdlib + pytest style of `tapestry-cli`.
+This repo was **not** handed a specification of what to build. What this module
+actually does, and how, is derived by **deliberately working the original source**.
+A repo cannot understand its piece from the outside. No outside agent here walked the
+real build — nothing in this file was written with friction against the actual source,
+so treat nothing here as authoritative. It is a starting orientation, not a plan to
+execute.
 
-### Migrate-from (precedent, generalize — do not copy as identity)
-- PROVES `mcp-server/` — already the cleanest standalone module:
-  - `server.py` read tools: `search_knowledge`, `get_entity`, `list_entities`.
-  - `db.py` read-only `SELECT`s.
-- Make source URLs / registry **injected config**, not baked identity.
+## 2. How decomposition works
 
-## What you own vs. don't
-Own: read/query over `verified`. Do NOT implement any pipeline writes — no intake,
-review, promotion, or observe here. lens-serve is read-only over verified.
+The Lens uses a **nearly-decomposable architecture**: modules have tight coupling
+*internally* and loose coupling *across boundaries*. They meet only on well-defined
+interfaces — a shared bus (the schema) — and otherwise stay out of each other's
+internals. The full method lives in the `decomposition` skill in the lens-core repo
+(`skills/decomposition/SKILL.md`). Read it; don't restate it from memory.
 
-## Record as you go
-Append here: what you built, what you needed, what's missing, what you had to decide.
-Also write it to loom-memory scoped to `lens-serve`. This log is capture-before-loss.
+## 3. Your piece + the fragment map
+
+**Your piece:** lens-serve is the **read side** — read-only access over `verified`,
+exposed as a query API and an MCP interface so people and agents can ask the verified
+library questions. You never write the pipeline tables.
+
+**The fragment map** — all the pieces and how they meet on the shared bus:
+
+- **lens-core** — defines the shared schema (the bus) + module composition + launcher.
+- **lens-ingest** — writes `candidates` + `sources`.
+- **lens-review** — reads `candidates`, writes `decisions` + `verified`.
+- **lens-serve** — reads `verified` (API + MCP).
+- **lens-observe** — reads activity, writes/serves signals.
+
+Coordinate only through the shared schema. Stay in your piece; don't absorb a sibling's
+work.
+
+## 4. The source — go work it
+
+The original source is **PROVES** (read-only) — the system The Lens was decomposed
+from. A map of it lives in lens-core `docs/decomposition/proves/process-log.md`.
+
+The parts relevant to your piece, **as places to START looking** (not a spec to copy):
+
+- PROVES `mcp-server/src/proves_mcp/server.py` — read tools.
+- PROVES `mcp-server/src/proves_mcp/db.py` — read-only queries.
+
+Read the actual source, understand how it really works, and derive what this module
+should be. Where any sketch here conflicts with the source or your own investigation,
+**the source and your investigation win.** Then write down what you learned.
+
+## 5. Structural constraints that hold regardless
+
+- The database connection is **injected via `LENS_DB_URL`**, never hardcoded.
+- Read only from the schema defined in lens-core (you read `verified`); never write the
+  pipeline tables.
+- Avoid the PROVES anti-patterns: parsing LLM prose as control flow; hardcoded
+  `sys.path`; inline DB-URL.
+
+## 6. Record as you go
+
+Append here what you learned, what you needed, and what's still missing. Also write it
+to loom-memory scoped to `lens-serve`. This log is capture-before-loss.
